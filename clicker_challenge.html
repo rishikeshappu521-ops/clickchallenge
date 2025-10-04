@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Clicker Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00d4ff, #ff00ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.5));
+            }
+            to {
+                filter: drop-shadow(0 0 20px rgba(255, 0, 234, 0.8));
+            }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00d4ff, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #clickButton {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: none;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            color: white;
+        }
+
+        #clickButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 60px rgba(0, 212, 255, 0.9);
+        }
+
+        #clickButton:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+        }
+
+        #clickButton.playing {
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 60px rgba(0, 212, 255, 0.9);
+            }
+        }
+
+        #clickButton.game-over {
+            background: linear-gradient(135deg, #ff00ea 0%, #ff0066 100%);
+            box-shadow: 0 0 40px rgba(255, 0, 234, 0.6);
+            animation: none;
+        }
+
+        .play-again {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .play-again:hover {
+            background: white;
+            color: #1a1a2e;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .instructions {
+            margin-top: 30px;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        @keyframes click-ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .click-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid white;
+            animation: click-ripple 0.4s ease-out;
+            pointer-events: none;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            #clickButton {
+                width: 250px;
+                height: 250px;
+                font-size: 1.5rem;
+            }
+
+            .stats {
+                gap: 20px;
+            }
+
+            .stat-box {
+                padding: 15px 20px;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ The Clicker Challenge ⚡</h1>
+        <p class="subtitle">How fast can you click?</p>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">SCORE</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">TIME</div>
+                <div class="stat-value" id="timer">5</div>
+            </div>
+        </div>
+
+        <button id="clickButton">Click Me!</button>
+        
+        <button class="play-again hidden" id="playAgain">Play Again</button>
+        
+        <p class="instructions" id="instructions">Click the button to start the 5-second challenge!</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 5;
+        let gameActive = false;
+        let timerInterval = null;
+
+        const clickButton = document.getElementById('clickButton');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const playAgainButton = document.getElementById('playAgain');
+        const instructions = document.getElementById('instructions');
+
+        function startGame() {
+            if (gameActive) {
+                score++;
+                scoreDisplay.textContent = score;
+                createClickEffect();
+                return;
+            }
+
+            // First click - start the game
+            gameActive = true;
+            score = 1;
+            timeLeft = 5;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = timeLeft;
+            clickButton.classList.add('playing');
+            instructions.classList.add('hidden');
+            createClickEffect();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            gameActive = false;
+            clickButton.classList.remove('playing');
+            clickButton.classList.add('game-over');
+            clickButton.textContent = `🎉 ${score} Clicks! 🎉`;
+            clickButton.style.cursor = 'default';
+            playAgainButton.classList.remove('hidden');
+        }
+
+        function resetGame() {
+            score = 0;
+            timeLeft = 5;
+            gameActive = false;
+            scoreDisplay.textContent = '0';
+            timerDisplay.textContent = '5';
+            clickButton.textContent = 'Click Me!';
+            clickButton.classList.remove('game-over');
+            clickButton.style.cursor = 'pointer';
+            playAgainButton.classList.add('hidden');
+            instructions.classList.remove('hidden');
+        }
+
+        function createClickEffect() {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            clickButton.appendChild(effect);
+            setTimeout(() => effect.remove(), 400);
+        }
+
+        clickButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', resetGame);
+
+        // Prevent double-click text selection
+        clickButton.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
